@@ -1,0 +1,49 @@
+# Core Dependencies for MARCH
+
+# Deep Learning Framework
+torch>=2.0.0
+torchdata>=0.6.0
+
+# Hugging Face Ecosystem
+transformers>=4.40.0
+tokenizers>=0.15.0
+accelerate>=0.20.0
+huggingface-hub>=0.20.0
+safetensors>=0.4.0
+
+# Distributed Training
+ray[default]>=2.40.0
+
+# Configuration Management
+hydra-core>=1.3.0
+omegaconf>=2.3.0
+
+# Data Processing
+pyarrow>=15.0.0
+pandas>=2.0.0
+numpy>=1.24.0
+datasets>=2.14.0
+dill>=0.3.7
+
+# LLM Inference
+vllm>=0.5.0
+sglang>=0.4.0
+
+# Reward & Verification
+math-verify>=0.5.0
+optree>=0.13.0
+
+# Utilities
+tensorboardX>=2.6.0
+tqdm>=4.65.0
+PyYAML>=6.0
+click>=8.1.0
+requests>=2.31.0
+rich>=13.0.0
+
+# Qwen Integration
+qwen-vl-utils>=0.0.10
+
+# Additional (optional but commonly used)
+joblib>=1.3.0
+regex>=2023.0
