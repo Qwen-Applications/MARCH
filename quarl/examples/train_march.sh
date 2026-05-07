@@ -10,6 +10,7 @@ export NCCL_WORK_FIFO_DEPTH=4194304
 export LANG=C.UTF-8
 export LANGUAGE=C.UTF-8
 
+pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 pip3 install tensorboardX qwen_vl_utils
 pip3 install transformers==4.52.4 vllm==0.8.5.post1
 
@@ -19,7 +20,7 @@ pip3 install "optree>=0.13.0"
 pip3 install torchdata
 
 # sglang
-pip3 install sglang==0.4.6.post5 sgl_kernel==0.1.5 cuda-python cuda-bindings torch_memory_saver torchao
+pip3 install sglang==0.4.6.post5
 
 # update ray
 pip install --upgrade --force-reinstall 'ray[default]'
@@ -29,7 +30,22 @@ apt install -y rclone
 
 # Setup workspace dir
 export WORKSPACE=/root/code/my_workspace
-bash /root/code/quarl/scripts/setup_workspace.sh
+mkdir -p $WORKSPACE
+
+if [ ! -d "${WORKSPACE}/verl" ]; then
+    cp /root/code/verl.zip $WORKSPACE/verl.zip
+    unzip -o $WORKSPACE/verl.zip -d $WORKSPACE
+fi
+
+if [ ! -d "${WORKSPACE}/MARCH" ]; then
+    cp /root/code/MARCH.zip $WORKSPACE/MARCH.zip
+    unzip -o $WORKSPACE/MARCH.zip -d $WORKSPACE
+fi
+
+
+pip3 install -r $WORKSPACE/MARCH/requirements/requirements-base.txt
+
+apt install -y rclone
 
 # Install VeRL
 export PYTHONPATH=$WORKSPACE/verl
@@ -100,7 +116,7 @@ ROLLOUT_ENGINE=vllm
 
 # Common RM Args
 CUSTOM_RM_ARGS="reward_model.reward_manager=quark \
-    +custom_reward_functions.bad_pattern.labels=['rag_for_digit_fact','rag_not_for_digit_fact','rag','fortune_telling','emotion','fuzzy_intention','medical'] \
+    +custom_reward_functions.bad_pattern.labels=['rag_for_digit_fact','rag_not_for_digit_fact','rag'] \
     +custom_reward_functions.bad_pattern.integration=sum \
     +custom_reward_functions.bad_pattern.kwargs.bad_pattern_coef=0.1
     +custom_rewards_fact_check_sp_coef=0.1 \
@@ -111,8 +127,21 @@ USE_QA_NUM_REWARD=False
 RLHF_BASELINE=factcheck
 USE_ZTR=True
 
-# Sync nodes
-sh $REPO_DIR/scripts/sync_nodes.sh
+# sync nodes
+local_ip=$( ifconfig eth0 | grep "inet " | awk '{print $2}' )
+
+echo "RANK${RANK} ${local_ip}" > ./common_ip_${RANK}.txt
+
+counter=`cat ./common_ip_*.txt | wc -l `
+while [ $counter -lt ${NNODES} ]
+do
+    echo "Wait for all nodes to be ready, current counter: ${counter}, all node: ${NNODES}"
+    sleep 5
+    counter=`cat ./common_ip_*.txt | wc -l`
+done
+
+sleep 10
+rm -rf ./common_ip_*.txt
 
 if [ $NODE_RANK -eq 0 ]; then
     # Primary node runs training

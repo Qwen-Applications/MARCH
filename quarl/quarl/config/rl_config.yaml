@@ -1,7 +1,6 @@
 hydra:
   searchpath:
     - file:///root/code/verl/verl/trainer/config
-    # - file:///Users/xuyuan/workspace/quark-rl/verl/verl/trainer/config
 
 defaults:
   - ppo_trainer
@@ -9,12 +8,6 @@ defaults:
   - ref@judge_model.ref: dp_ref
   - actor@judge_model.actor: dp_actor
   - _self_  
-
-  # trainer.npu_profile: trainer/config/npu_profile/npu_profile.yaml
-  #  - npu_profile@trainer.npu_profile: npu_profile
-
-  # data: trainer/config/data/legacy_data.yaml
-  #  - data@data: legacy_data
 
 actor_rollout_ref:
   type: default # or `quark` for `QuarkActorRolloutRefWorker`, or `quark_sp` for self-play
