@@ -1,0 +1,132 @@
+hydra:
+  searchpath:
+    - file:///root/code/verl/verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - rollout@judge_model.rollout: rollout
+  - ref@judge_model.ref: dp_ref
+  - actor@judge_model.actor: dp_actor
+  - _self_  
+
+actor_rollout_ref:
+  type: default # or `quark` for `QuarkActorRolloutRefWorker`, or `quark_sp` for self-play
+
+  model:
+    custom_chat_template: null # normally a jinja string, use `quark-chat` to use `QuarkChatTemplate`
+
+  rollout:
+    seed: 42
+    name: ??? # use `quark_sglang`, `quark_search_sglang` to use `QuarkSGLangRollout` or `QuarkSearchSGLangRollout`
+    reflection:
+      enable: false 
+      type: outcome_only # or `each_step`, which apply reflection to each reasoning step
+      ratio: 1.0 # float value between 0-1, how much probability to use reflection      
+      pattern: <answer> # or math_box, for `outcome_only`
+      prefix:
+        english: ["wait,"]
+        chinese: ["wait,"]
+        other: ["wait,"]
+
+reward_model:
+  model:
+  
+    # for different type of reward model    
+    type: default # or 'quark' for quark 2-layer-head reward model
+
+val_reward_config: # for quark deep search
+  enable: False
+  reward_model:
+    reward_manager: naive
+  data:
+    reward_fn_key: data_source
+  custom_reward_function:
+    path: null
+    name: compute_score
+
+
+trainer:
+  val_only: False
+
+
+quark:
+  task_type: origin # or `quark_rlhf`, `quark_self_play`
+  reward_type: default # or `judge_model`
+
+
+# config for actor, rollout and reference model
+judge_model:
+  enable: false
+
+  # Whether it's a hybrid engine, currently only supports hybrid engine
+  hybrid_engine: true
+
+  model:
+
+    # Huggingface model path. This can be either local path or HDFS path.
+    path: ~/models/deepseek-llm-7b-chat
+
+    input_tokenizer: ${actor_rollout_ref.model.path}
+
+    # Custom chat template for the model.
+    custom_chat_template: null
+
+    # Whether to use shared memory (SHM) for accelerating the loading of model weights
+    use_shm: false
+
+    # Additional Python packages to register huggingface models/tokenizers.
+    external_lib: null
+
+    # Used to override model's original configurations, mainly dropout
+    override_config: {}
+
+    # Enable gradient checkpointing for actor
+    enable_gradient_checkpointing: true
+
+    # Enable activation offloading for actor
+    enable_activation_offload: false
+
+    # Whether to remove padding tokens in inputs during training
+    use_remove_padding: false
+
+    # Set to positive value to enable LoRA (e.g., 32)
+    lora_rank: 0
+
+    # LoRA scaling factor
+    lora_alpha: 16
+
+    # Target modules to apply LoRA. Options: "all-linear" (not recommended for VLMs) or
+    # [q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj]
+    target_modules: all-linear
+    
+    # Exclude modules from applying Lora. Similar usage to target_modules and Peft.
+    # Example: '.*visual.*' for excluding the ViT in Qwen2.5-VL, as currently vllm does not support ViT Lora.
+    exclude_modules: null
+
+    # Whether to use Liger for linear layer fusion
+    use_liger: false
+
+    # Whether to use custom fused kernels (e.g., FlashAttention, fused MLP)
+    use_fused_kernels: false
+
+    # Options for fused kernels. If use_fused_kernels is true, this will be used.
+    fused_kernel_options:
+
+      # Implementation backend for fused kernels. Options: "triton" or "torch".
+      impl_backend: torch
+
+    # Whether to enable loading a remote code model
+    trust_remote_code: false
+
+  # Rollout model config.
+  rollout:
+
+    # may get higher throughput when set to True. When activated, Please increase max_num_batched_tokens or decrease max_model_len.
+    enable_chunked_prefill: True
+
+    # Which loader to use for rollout model weights: dummy_dtensor, hf, megatron, etc.
+    # safetensors (for huge model, and set use_shm=True); dummy_dtensor: randomly init model weight
+    load_format: dummy_dtensor
+
+    # for huge model, layered summon can save memory (prevent OOM) but make it slower
+    layered_summon: False

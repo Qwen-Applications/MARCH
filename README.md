@@ -1,6 +1,6 @@
 
 <div align="center">
-<h1>MARCH: Multi-Agent Reinforced Self-Check for LLM Hallucination</h1>
+<h1>MARCH: Multi-Agent Reinforced Self-Check for LLM Hallucination (ACL 2026)</h1>
 
 
 <!-- Badges -->
@@ -35,4 +35,170 @@ MARCH (Multi-Agent Reinforced Check for Hallucination) is a collaborative framew
 </p>
 
 
-<h3 align="center">More implementation is coming soon!</h3>
+## ⚙️ 1. Setup and Installation
+
+First, we recommend creating a Conda virtual environment and installing the required dependencies.
+
+```bash
+# Create and activate the conda environment
+conda create -n march python=3.9
+conda activate march
+
+# Install all other dependencies
+pip install -r requirements.txt
+```
+
+## 📊 2. Data and Model Preparation
+
+We provide our training dataset and evaluation benchmarks in Google Drive: [MARCH Dataset and Benchmarks](https://drive.google.com/file/d/11emgPLFSZpftP93LVuisvp3Z44HVDcQW/view?usp=sharing). Please download and set up the paths accordingly in the training script.
+
+### Data Format
+Training data should be in Parquet format with the following structure:
+- `prompt`: Input prompt containing user query and retrieved documents
+- `label`: "rag_for_digit_fact" for fact check training samples
+
+Please refer to the released training data for examples of the prompt structure, content, and additional metadata.
+
+## 🚀 3. Training and Evaluation Pipeline
+
+### 3.1 Environment Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Qwen-Applications/MARCH.git
+cd MARCH
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install additional dependencies for MARCH
+pip install tensorboardX qwen_vl_utils
+pip install transformers==4.52.4 vllm==0.8.5.post1
+pip install "pyarrow>=19.0.1" math-verify "optree>=0.13.0" torchdata
+pip install sglang==0.4.6.post5 sgl_kernel==0.1.5 cuda-python cuda-bindings torch_memory_saver torchao
+pip install --upgrade --force-reinstall 'ray[default]'
+pip install click==8.2.1
+```
+
+### 3.2 Training Configuration and Launch Training
+
+Set up the required environment variables:
+
+```bash
+cd quarl
+
+vim examples/train_march.sh  # Edit the training script to set up paths and parameters
+```
+
+Below are the key environment variables to configure in `train_march.sh`:
+
+| Variable | Description |
+|----------|-------------|
+| `YOUR_TRAINING_DATA_PATH` | Path to the training dataset |
+| `YOUR_TEST_DATA_PATH` | Path to the evaluation dataset |
+| `YOUR_CHECKPOINT_SAVE_DIR` | Directory to save training checkpoints|
+| `YOUR_ACTOR_MODEL_CHECKPOINT_DIR` | Path to the actor model checkpoint |
+| `YOUR_REWARD_MODEL_CHECKPOINT_DIR` | Path to the reward model checkpoint |
+| `YOUR_CRITIC_MODEL_CHECKPOINT_DIR` | Path to the critic model checkpoint, usually the same as the reward model path |
+| `YOUR_TENSORBOARD_LOG_DIR` | Directory for TensorBoard logs |
+| `YOUR_ROLLOUT_OUTPUT_DIR` | Directory to save rollout content and other outputs |
+| `NNODES` | Number of nodes for distributed training |
+| `RANK` | Rank of the current node (0 for master, 1 for first worker, etc.) |
+| `MASTER_ADDR` | IP address of the master node for distributed training |
+
+
+Then, launch the training process:
+
+```bash
+
+# Multi-node training
+bash examples/train_march.sh
+```
+
+### 3.3 Key Training Parameters
+
+Other training parameters such as `TRAIN_METHOD`, `BATCH_SIZE`, `MAX_PROMPT_LENGTH`, `MAX_RESPONSE_LENGTH`, `ACTOR_USE_KL_LOSS`, `USE_CHECKER_PPO`, and `USE_ZTR` can also be configured in the training script.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `TRAIN_METHOD` | Training algorithm (ppo) | `ppo` |
+| `BATCH_SIZE` | Training batch size | `32` |
+| `MAX_PROMPT_LENGTH` | Maximum prompt token length | `24567` |
+| `MAX_RESPONSE_LENGTH` | Maximum response token length | `8192` |
+| `ACTOR_USE_KL_LOSS` | Enable KL divergence loss | `False` |
+| `USE_CHECKER_PPO` | Enable checker PPO training | `True` |
+| `USE_ZTR` | Zero tolerance reward mode | `True` |
+
+### 3.4 MARCH-Specific Configurations in Training Script
+
+```bash
+# Task type for fact-checking with MARCH
+TASK_TYPE=fact_check_sp_march
+
+# RLHF baseline (factcheck mode enables MARCH fact-checking)
+RLHF_BASELINE=factcheck
+
+# Custom reward functions for fact-checking
+CUSTOM_RM_ARGS="reward_model.reward_manager=quark \
+    +custom_reward_functions.bad_pattern.labels=['rag_for_digit_fact','rag_not_for_digit_fact','rag'] \
+    +custom_reward_functions.bad_pattern.integration=sum \
+    +custom_rewards_fact_check_sp_labels=['rag_for_digit_fact']"
+```
+
+## 📁 4. Repository Structure
+
+```
+MARCH/
+├── README.md                    # Project documentation
+├── requirements.txt              # Python dependencies
+├── data/                        # Training and evaluation datasets
+│
+├── verl/                        # VeRL framework 
+│
+└── quarl/                       # QUARK RL framework
+    ├── examples/
+    │   └── train_march.sh       # MARCH training script
+    ├── scripts/                 # Utility scripts
+    ├── quarl/
+    │   ├── main_rl.py           # Main training entry point
+    │   ├── config/              # Configuration files
+    │   ├── dataset/             # Dataset utilities
+    │   │   └── rlhf_dataset.py  # RLHF dataset handling
+    │   ├── interface/           # Interface definitions
+    │   ├── model/               # Model utilities
+    │   ├── reward/              # Reward functions
+    │   │   ├── base.py          # Base reward functions
+    │   │   ├── manager.py       # Reward manager implementations
+    │   ├── tool/                # Tool utilities
+    │   ├── trainer/             # Trainer implementations
+    │   │   └── ray_trainer_with_fact_check_march.py  # MARCH trainer
+    │   ├── utils/               # Utility functions
+    │   │   ├── data_utils.py    # Data processing utilities
+    │   │   └── ...
+    │   └── worker/              # Worker implementations
+    │       └── fsdp_worker.py   # FSDP worker with MARCH support
+    └── requirements/            # Additional requirements
+```
+
+
+## 🙏 Acknowledgements
+
+This project is built upon several fantastic open-source libraries. We would like to extend our heartfelt gratitude to the developers and communities of:
+- [Hugging Face Transformers](https://github.com/huggingface/transformers) for providing easy access to state-of-the-art models.
+- [VeRL](https://github.com/verl-project/verl) for providing robust distributed RL training framework.
+
+## 📜 Citation
+
+If you find our work useful in your research, please consider citing our paper:
+
+```bibtex
+@misc{li2025eliminatinginductivebiasreward,
+      title={Eliminating Inductive Bias in Reward Models with Information-Theoretic Guidance},
+      author={Zhuo Li and Pengyu Cheng and Zhechao Yu and Feifei Tong and Anningzhe Gao and Tsung-Hui Chang and Xiang Wan and Erchao Zhao and Xiaoxi Jiang and Guanjun Jiang},
+      year={2025},
+      eprint={2512.23461},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2512.23461},
+}
+```
