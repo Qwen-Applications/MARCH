@@ -185,20 +185,19 @@ MARCH/
 
 This project is built upon several fantastic open-source libraries. We would like to extend our heartfelt gratitude to the developers and communities of:
 - [Hugging Face Transformers](https://github.com/huggingface/transformers) for providing easy access to state-of-the-art models.
-- [VeRL](https://github.com/verl-project/verl) for providing robust distributed RL training framework.
+- [VeRL](https://github.com/verl-project/verl) for providing a robust distributed RL training framework.
 
 ## 📜 Citation
 
 If you find our work useful in your research, please consider citing our paper:
 
 ```bibtex
-@misc{li2025eliminatinginductivebiasreward,
-      title={Eliminating Inductive Bias in Reward Models with Information-Theoretic Guidance},
-      author={Zhuo Li and Pengyu Cheng and Zhechao Yu and Feifei Tong and Anningzhe Gao and Tsung-Hui Chang and Xiang Wan and Erchao Zhao and Xiaoxi Jiang and Guanjun Jiang},
-      year={2025},
-      eprint={2512.23461},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2512.23461},
+@inproceedings{li2026march,
+      title={MARCH: Multi-Agent Reinforced Self-Check for LLM Hallucination}, 
+      author={Zhuo Li and Yupeng Zhang and Pengyu Cheng and Jiajun Song and Mengyu Zhou and Hao Li and Shujie Hu and Yu Qin and Erchao Zhao and Xiaoxi Jiang and Guanjun Jiang},
+      year={2026},
+        booktitle = {Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+      publisher = {Association for Computational Linguistics},
+      url={https://arxiv.org/abs/2603.24579}, 
 }
 ```
