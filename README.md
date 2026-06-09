@@ -196,7 +196,7 @@ If you find our work useful in your research, please consider citing our paper:
       title={MARCH: Multi-Agent Reinforced Self-Check for LLM Hallucination}, 
       author={Zhuo Li and Yupeng Zhang and Pengyu Cheng and Jiajun Song and Mengyu Zhou and Hao Li and Shujie Hu and Yu Qin and Erchao Zhao and Xiaoxi Jiang and Guanjun Jiang},
       year={2026},
-        booktitle = {Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+      booktitle = {Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
       publisher = {Association for Computational Linguistics},
       url={https://arxiv.org/abs/2603.24579}, 
 }
